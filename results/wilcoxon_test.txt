@@ -1,4 +1,0 @@
-XGBoost vs Logistic Regression
-Wilcoxon statistic = 5.0000
-p-value = 0.6250
-NOT significant (p >= 0.05)

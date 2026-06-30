@@ -1,6 +1,11 @@
 # Data (reproducible via download_dataset.py)
 data/
 
+# Generated outputs (reproducible by running pipeline.py)
+figures/
+results/
+latex_exports/
+
 # Python
 __pycache__/
 *.pyc
