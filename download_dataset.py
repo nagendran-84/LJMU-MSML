@@ -1,6 +1,6 @@
 """
 Download German Credit Data from UCI and save it as data/german_credit.csv.
-Run this once before opening the main notebook.
+Run this once before pipeline.py.
 
 Usage (from the Source Code folder):
     python download_dataset.py

@@ -19,9 +19,9 @@ Outputs (written to results/ and figures/):
     - fairness_metrics.csv / .tex
 """
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 0. DEPENDENCIES
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 import subprocess, sys
 
 REQUIRED = [
@@ -35,15 +35,14 @@ for pkg in REQUIRED:
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 1. SETUP & IMPORTS
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 import os
 import sys
 import warnings
 warnings.filterwarnings("ignore")
 
-# Force stdout to flush immediately — fixes VS Code terminal buffering
 sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, 'reconfigure') else None
 
 import pandas as pd
@@ -80,9 +79,9 @@ for d in ["results", "figures", "latex_exports"]:
 RANDOM_STATE = 42
 np.random.seed(RANDOM_STATE)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 2. DATA LOADING & PREPARATION
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("=" * 60)
 print("STEP 1 — Loading data")
 print("=" * 60)
@@ -157,9 +156,9 @@ X_scaled = scaler.fit_transform(X_encoded.values)
 # ── Align protected attribute to full dataset index ──
 protected = protected_raw.values
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 3. TRAIN / TEST SPLIT  (stratified, 80/20)
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 (X_train_raw, X_test_raw,
  y_train, y_test,
  prot_train, prot_test) = train_test_split(
@@ -172,9 +171,9 @@ smote = SMOTE(random_state=RANDOM_STATE)
 X_train, y_train_res = smote.fit_resample(X_train_raw, y_train)
 print(f"After SMOTE — train: {X_train.shape}, test: {X_test_raw.shape}\n", flush=True)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 4. MODEL DEFINITIONS
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 MODELS = {
     "Logistic Regression": LogisticRegression(
         max_iter=1000, C=1.0, solver="lbfgs", random_state=RANDOM_STATE
@@ -196,9 +195,9 @@ MODELS = {
     ),
 }
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 5. CROSS-VALIDATION  (5-fold stratified, SMOTE per fold)
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("=" * 60, flush=True)
 print("STEP 2 — 5-Fold Stratified Cross-Validation", flush=True)
 print("=" * 60, flush=True)
@@ -252,9 +251,9 @@ with open("latex_exports/performance_table.tex", "w") as f:
                               label="tab:performance"))
 print("\n[Saved] results/performance_table.csv  &  latex_exports/performance_table.tex", flush=True)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 6. WILCOXON SIGNED-RANK TEST  (best black-box vs best baseline)
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n" + "=" * 60, flush=True)
 print("STEP 3 — Statistical Significance (Wilcoxon Test)", flush=True)
 print("=" * 60, flush=True)
@@ -277,9 +276,9 @@ with open("results/wilcoxon_test.txt", "w") as f:
     f.write(f"{best_bb} vs {best_base}\n")
     f.write(f"Wilcoxon statistic = {stat:.4f}\np-value = {p_val:.4f}\n{sig}\n")
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 7. TRAIN FINAL MODELS ON FULL TRAINING SET
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("=" * 60, flush=True)
 print("STEP 4 — Training final models on full train split", flush=True)
 print("=" * 60, flush=True)
@@ -295,9 +294,9 @@ for name, model in MODELS.items():
           f"  Acc={accuracy_score(y_test, preds):.4f}"
           f"  F1={f1_score(y_test, preds):.4f}", flush=True)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 8. ROC CURVES
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n[Plotting] ROC curves...", flush=True)
 fig, ax = plt.subplots(figsize=(8, 6))
 colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"]
@@ -320,9 +319,9 @@ plt.savefig("figures/roc_curves.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("[Saved] figures/roc_curves.pdf", flush=True)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 9. CONFUSION MATRICES
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("[Plotting] Confusion matrices...", flush=True)
 fig, axes = plt.subplots(1, 5, figsize=(22, 4))
 for ax, (name, model) in zip(axes, trained_models.items()):
@@ -339,9 +338,9 @@ plt.savefig("figures/confusion_matrices.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("[Saved] figures/confusion_matrices.pdf", flush=True)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 10. SHAP ANALYSIS  (tree-based black-box models)
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n" + "=" * 60, flush=True)
 print("STEP 5 — SHAP Analysis", flush=True)
 print("=" * 60, flush=True)
@@ -357,10 +356,8 @@ for name in BLACKBOX_MODELS:
     # Use test set for explanations — reflects real inference
     shap_vals = explainer.shap_values(X_test_raw)
 
-    # Handle all SHAP output formats across versions:
-    #   Old SHAP  → list of 2D arrays [class0, class1], shape (n_samples, n_features)
-    #   New SHAP  → single 3D array,                   shape (n_samples, n_features, n_classes)
-    #   XGBoost   → single 2D array,                   shape (n_samples, n_features)
+    # shap_values() return shape differs by SHAP version / model type:
+    # list of 2D arrays (old SHAP), 3D array (new SHAP), or plain 2D (XGBoost)
     if isinstance(shap_vals, list):
         sv = shap_vals[1]                  # take positive class
     elif hasattr(shap_vals, "ndim") and shap_vals.ndim == 3:
@@ -435,9 +432,9 @@ for name in BLACKBOX_MODELS:
         except Exception as e:
             print(f"    [Warning] Local SHAP waterfall skipped: {e}", flush=True)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 11. LIME ANALYSIS  (local explanations on test set)
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n" + "=" * 60, flush=True)
 print("STEP 6 — LIME Analysis", flush=True)
 print("=" * 60, flush=True)
@@ -495,9 +492,9 @@ for name in BLACKBOX_MODELS:
     plt.close()
     print(f"  [Saved] figures/lime_bar_{fig_name}.pdf", flush=True)
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 12. SHAP vs LIME CONSISTENCY CHECK (Spearman rank correlation)
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n" + "=" * 60, flush=True)
 print("STEP 7 — SHAP vs LIME Feature Rank Consistency", flush=True)
 print("=" * 60, flush=True)
@@ -554,9 +551,9 @@ plt.savefig("figures/shap_vs_lime_comparison.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("[Saved] figures/shap_vs_lime_comparison.pdf")
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 13. DiCE COUNTERFACTUAL EXPLANATIONS
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n" + "=" * 60, flush=True)
 print("STEP 8 — DiCE Counterfactual Explanations", flush=True)
 print("=" * 60, flush=True)
@@ -624,9 +621,9 @@ if all_cfs:
 else:
     print("  No counterfactuals generated.")
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 14. FAIRNESS AUDIT
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n" + "=" * 60, flush=True)
 print("STEP 9 — Fairness Audit", flush=True)
 print("=" * 60, flush=True)
@@ -684,30 +681,10 @@ plt.savefig("figures/fairness_metrics.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("[Saved] figures/fairness_metrics.pdf")
 
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 # 15. FINAL SUMMARY
-# ─────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
 print("\n" + "=" * 60)
-print("PIPELINE COMPLETE — Output Summary")
+print("PIPELINE COMPLETE")
 print("=" * 60)
-print("\nresults/")
-print("  performance_table.csv       — CV metrics for all 5 models")
-print("  wilcoxon_test.txt           — Statistical significance test")
-print("  shap_lime_consistency.csv   — Spearman rank correlation")
-print("  counterfactuals.csv         — DiCE counterfactual examples")
-print("  fairness_metrics.csv        — DPD and EOD for all models")
-print("\nfigures/")
-print("  roc_curves.pdf/png          — ROC curves (all models)")
-print("  confusion_matrices.pdf/png  — Confusion matrices")
-print("  shap_summary_*.pdf/png      — SHAP beeswarm plots")
-print("  shap_bar_*.pdf/png          — SHAP bar charts")
-print("  shap_local_*.pdf/png        — SHAP waterfall (local)")
-print("  lime_bar_*.pdf/png          — LIME bar charts")
-print("  shap_vs_lime_comparison.pdf — Side-by-side SHAP vs LIME")
-print("  fairness_metrics.pdf/png    — Fairness bar charts")
-print("\nlatex_exports/")
-print("  performance_table.tex")
-print("  shap_lime_consistency.tex")
-print("  counterfactuals.tex")
-print("  fairness_metrics.tex")
-print("\nAll outputs ready for inclusion in the interim report.")
+print("results/, figures/, latex_exports/ have been populated.")

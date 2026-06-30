@@ -4,50 +4,41 @@ Train vs Test Performance Comparison
 MSc Machine Learning -- Liverpool John Moores University
 Topic: Explainability and Fairness in ML Models for Credit Risk Prediction
 
-Standalone follow-up to pipeline.py. It reproduces the EXACT data preparation,
+Standalone follow-up to pipeline.py. Reproduces the same data preparation,
 train/test split (random_state=42), SMOTE resampling, and model definitions
-used in pipeline.py, retrains the same 5 models on the SMOTE-resampled
-training set (identical to pipeline.py Section 7), and then evaluates each
-model on BOTH:
-  - the ORIGINAL (pre-SMOTE) training instances  (X_train_raw, y_train)
-  - the held-out test set                          (X_test_raw,  y_test)
+used in pipeline.py (Section 7), retrains the same 5 models on the
+SMOTE-resampled training set, and evaluates each model on both:
+  - the original (pre-SMOTE) training instances  (X_train_raw, y_train)
+  - the held-out test set                         (X_test_raw,  y_test)
 
-IMPORTANT methodological note: train-set metrics are deliberately computed on
-the *original* (non-resampled) training instances, not the SMOTE-augmented
-training set the model was fit on. Evaluating on the SMOTE-augmented set
-would inflate apparent train performance with synthetic minority oversamples
-and would not be comparable to the test set, which keeps the natural
-(imbalanced) class distribution. This keeps the train-vs-test comparison
-apples-to-apples, so any gap reflects genuine generalisation behaviour rather
-than an artefact of oversampling.
+Train-set metrics are computed on the original (non-resampled) training
+instances rather than the SMOTE-augmented set the model was fit on --
+scoring against the SMOTE-augmented set would inflate train performance
+with synthetic minority oversamples and wouldn't be comparable to the test
+set, which keeps the natural imbalanced class distribution. This keeps the
+train-vs-test gap a measure of generalisation rather than an oversampling
+artefact.
 
-HOW TO RUN
-----------
-Run this from the SAME Python environment / virtual environment you used to
-run pipeline.py (so scikit-learn / XGBoost / imbalanced-learn versions match
-and the retrained models reproduce identical numbers to the existing test-set
-figures already in the report):
+Run from the same environment used for pipeline.py (so scikit-learn /
+XGBoost / imbalanced-learn versions match and the retrained models reproduce
+the same numbers as the existing test-set figures):
 
     cd "Source Code"
     python train_test_comparison.py
 
-The script prints a sanity check that compares its freshly-computed test-set
-AUCs against the values already shown in the existing figures/roc_curves.png
-(Figure 5.1 in the thesis). If every row prints "OK", the new train-set
-figures and the train-vs-test comparison are guaranteed consistent with the
-test-set figures already embedded in the thesis. If anything prints
-"MISMATCH", stop and flag it back before sending the outputs along --
-something differs from the environment that produced the original figures
-(most likely a scikit-learn / XGBoost version difference).
+The script re-checks its test-set AUCs against the values already shown in
+figures/roc_curves.png (Figure 5.1 in the thesis) and prints OK/MISMATCH per
+model -- a MISMATCH means the environment differs from the one that produced
+the original figures (most likely a scikit-learn / XGBoost version
+difference), and the new train-vs-test outputs won't be consistent with the
+existing figures.
 
-OUTPUTS (written into results/ and figures/, alongside pipeline.py's outputs)
+Outputs (written into results/ and figures/, alongside pipeline.py's outputs):
     results/performance_train_vs_test.csv
     latex_exports/performance_train_vs_test.tex
     figures/roc_curves_train.pdf / .png
     figures/confusion_matrices_train.pdf / .png
     figures/train_vs_test_comparison.pdf / .png
-
-Please send back the whole console output plus the 5 new files above.
 """
 
 import os
@@ -187,9 +178,9 @@ for name, model in trained_models.items():
 print()
 if any_mismatch:
     print("!! At least one model's test AUC differs from the existing Figure 5.1.")
-    print("!! The new figures below will NOT be perfectly consistent with the")
-    print("!! existing test-set figures already in the thesis. Please flag this")
-    print("!! back before the outputs are inserted into the report.\n")
+    print("!! The figures generated below will not be perfectly consistent with")
+    print("!! the existing test-set figures in the thesis -- check sklearn/XGBoost")
+    print("!! versions before using these outputs.\n")
 
 # ---------------------------------------------------------------------------
 # 5. TRAIN vs TEST METRICS
@@ -307,4 +298,3 @@ print("  latex_exports/performance_train_vs_test.tex")
 print("  figures/roc_curves_train.pdf / .png")
 print("  figures/confusion_matrices_train.pdf / .png")
 print("  figures/train_vs_test_comparison.pdf / .png")
-print("\nPlease send back the console output above plus these 5 files.")
