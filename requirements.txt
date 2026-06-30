@@ -10,3 +10,4 @@ fairlearn
 dice-ml
 xgboost
 scipy
+ucimlrepo
